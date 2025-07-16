@@ -1,5 +1,4 @@
 use std::env;
-use std::path::PathBuf;
 
 fn main() {
     // Check if CUDA is available
