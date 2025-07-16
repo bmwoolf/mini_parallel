@@ -26,11 +26,13 @@ pub fn gpu_align_16_files(file_paths: [String; 16]) -> Vec<GpuAlignmentResult> {
         println!("  - {} ({} GB)", device.name, device.memory_gb);
     }
     
-    // Process all pairs (16 choose 2 = 120 pairs)
+    // process all pairs in one loop (16 choose 2 = 120 pairs)
+    // TODO: replace with vecorization instead of loops
     for i in 0..16 {
         for j in (i + 1)..16 {
             let start_time = Instant::now();
             
+            // match checks if gpu_align_pair succeeded
             match gpu_align_pair(&file_paths[i], &file_paths[j], &devices[0]) {
                 Ok(mut result) => {
                     result.processing_time_ms = start_time.elapsed().as_millis() as f64;
