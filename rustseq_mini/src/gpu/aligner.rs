@@ -73,6 +73,7 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     let kernel = Kernel::builder()
         .program(&program)
         .name("smith_waterman_align")
+        .queue(queue.clone())
         .global_work_size(work_groups * work_group_size)
         .local_work_size(work_group_size)
         .arg(&seq1_buffer)
@@ -85,9 +86,11 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     unsafe {
         kernel.enq().map_err(|e| format!("Failed to execute kernel: {}", e))?;
     }
+    // Wait for completion
+    queue.finish().map_err(|e| format!("Failed to wait for kernel completion: {}", e))?;
     // Read result
     let mut result = vec![0i32];
-    result_buffer.read(&mut result).enq().unwrap();
+    result_buffer.read(&mut result).enq().map_err(|e| format!("Failed to read result: {}", e))?;
     Ok(result[0])
 }
 

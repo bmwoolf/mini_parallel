@@ -64,41 +64,17 @@ pub fn align(seq1: &str, seq2: &str) -> i32 {
 }
 
 // Function to read genome from file with memory-efficient streaming
-pub fn align_from_files(file1: &str, file2: &str) -> Result<i32, std::io::Error> {
-    let mut total_score = 0;
-    let mut buffer1 = String::new();
-    let mut buffer2 = String::new();
-    
-    let file1 = File::open(file1)?;
-    let file2 = File::open(file2)?;
-    
-    let mut reader1 = BufReader::new(file1);
-    let mut reader2 = BufReader::new(file2);
-    
-    loop {
-        buffer1.clear();
-        buffer2.clear();
-        
-        let len1 = reader1.read_line(&mut buffer1)?;
-        let len2 = reader2.read_line(&mut buffer2)?;
-        
-        if len1 == 0 || len2 == 0 {
-            break;
-        }
-        
-        // Skip header lines (start with '>')
-        if buffer1.starts_with('>') || buffer2.starts_with('>') {
-            continue;
-        }
-        
-        // Trim whitespace and newlines
-        let seq1 = buffer1.trim();
-        let seq2 = buffer2.trim();
-        
-        if !seq1.is_empty() && !seq2.is_empty() {
-            total_score += align(seq1, seq2);
-        }
+pub fn align_from_files(file1: &str, file2: &str) -> Result<i32, String> {
+    // Use the GPU aligner's file loading function for FASTQ files
+    match crate::gpu::aligner::load_sequence_from_file(file1) {
+        Ok(seq1) => {
+            match crate::gpu::aligner::load_sequence_from_file(file2) {
+                Ok(seq2) => {
+                    Ok(align(&seq1, &seq2))
+                },
+                Err(e) => Err(format!("Failed to load second file: {}", e))
+            }
+        },
+        Err(e) => Err(format!("Failed to load first file: {}", e))
     }
-    
-    Ok(total_score)
 }
