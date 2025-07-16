@@ -14,3 +14,33 @@ T = G (-1)
 ## For my WGS:
 Alignment: compare to average reference genome
 Complementary: find what % of genome is not perfectly complementary (boooo)
+
+## Setup for WGS Processing
+
+### Environment Configuration
+Create a `.env` file in the project root with your WGS data configuration:
+
+```bash
+# WGS Data Configuration
+WGS_DATA_DIR=/path/to/your/wgs/data
+WGS_SAMPLE_ID=your-sample-id
+WGS_LANES=8
+WGS_READS_PER_LANE=2
+
+# GPU Configuration
+GPU_CHUNK_SIZE_READS=10000
+GPU_CHUNK_SIZE_BASES=1000000
+```
+
+### Usage
+```bash
+# Test WGS file reading
+cargo run -- --test-wgs --gpu
+
+# Process full WGS dataset
+cargo run -- --full-wgs --gpu
+```
+
+### File Naming Convention
+The aligner expects files named: `{SAMPLE_ID}_L{LANE:03}_R{READ}_001.fastq.gz`
+- Example: `SAMPLE_001_L001_R1_001.fastq.gz`
