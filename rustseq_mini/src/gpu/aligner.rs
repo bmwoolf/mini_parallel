@@ -27,7 +27,8 @@ pub fn gpu_align_16_files(file_paths: [String; 16]) -> Vec<GpuAlignmentResult> {
     }
     
     // process all pairs in one loop (16 choose 2 = 120 pairs)
-    // TODO: replace with vecorization instead of loops
+    // TODO: replace with batching- max threads for reads
+    // gpu_align_batch(&list_of_pairs, &device)
     for i in 0..16 {
         for j in (i + 1)..16 {
             let start_time = Instant::now();
