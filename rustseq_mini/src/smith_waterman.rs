@@ -12,6 +12,15 @@ pub fn align(seq1: &str, seq2: &str) -> i32 {
 
     let mut score = 0;
 
+    // Helper function for complementary base pairing
+    fn is_complementary(a: u8, b: u8) -> bool {
+        match (a, b) {
+            (b'A', b'T') | (b'T', b'A') => true,  // A-T pair
+            (b'C', b'G') | (b'G', b'C') => true,  // C-G pair
+            _ => false
+        }
+    }
+
     unsafe {
         let chunk = 16; // 16x u8 fits in __m128i
 
