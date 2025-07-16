@@ -5,3 +5,17 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
+num_cpus = "1.16"
+rayon = "1.8"  # Parallel processing for file pairs
+flate2 = "1.0"  # Gzip decompression for FASTQ files
+
+# OpenCL dependencies for GPU acceleration
+ocl = "0.19"  # OpenCL bindings for Rust
+
+[dev-dependencies]
+criterion = "0.5"  # Benchmarking
+flamegraph = "0.4"  # Performance profiling
+fastrand = "2.0"  # Random sequence generation for benchmarks
+
+[build-dependencies]
+cc = "1.0"

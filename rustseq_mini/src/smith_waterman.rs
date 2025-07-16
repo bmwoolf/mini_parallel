@@ -1,58 +1,80 @@
-// core alignment logic
-// +2 if the letters match, -1 if they dont, per letter postion
+// core alignment logic for genome-scale sequences
+// +2 if the letters match, -1 if they dont, per letter position
 
 use std::arch::x86_64::*;
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 
-// example of SIMD inner loop
-// smith-waterman algorithm with vectorized scoring
+const CHUNK_SIZE: usize = 1024 * 1024; // 1MB chunks
+
+// smith-waterman algorithm with vectorized scoring for large sequences
 pub fn align(seq1: &str, seq2: &str) -> i32 {
     let bytes1 = seq1.as_bytes();
     let bytes2 = seq2.as_bytes();
     let len = bytes1.len().min(bytes2.len());
-
-    let mut score = 0;
-
-    // Helper function for complementary base pairing
-    fn is_complementary(a: u8, b: u8) -> bool {
-        match (a, b) {
-            (b'A', b'T') | (b'T', b'A') => true,  // A-T pair
-            (b'C', b'G') | (b'G', b'C') => true,  // C-G pair
-            _ => false
+    let mut total_score = 0;
+    // Process in chunks to handle large genomes
+    let mut offset = 0;
+    while offset < len {
+        let chunk_end = (offset + CHUNK_SIZE).min(len);
+        let chunk_len = chunk_end - offset;
+        let mut score = 0;
+        unsafe {
+            // Use largest available SIMD width
+            let simd_chunk = if chunk_len >= 64 && is_x86_feature_detected!("avx2") {
+                32 // AVX2 can process 32 bytes at once
+            } else if chunk_len >= 16 {
+                16 // SSE can process 16 bytes at once
+            } else {
+                chunk_len // Fall back to scalar for small chunks
+            };
+            let mut i = 0;
+            while i + simd_chunk <= chunk_len {
+                // Load SIMD vectors
+                let a = _mm_loadu_si128(bytes1[offset + i..].as_ptr() as *const __m128i);
+                let b = _mm_loadu_si128(bytes2[offset + i..].as_ptr() as *const __m128i);
+                let cmp = _mm_cmpeq_epi8(a, b);
+                // if match, +2
+                let match_score = _mm_and_si128(cmp, _mm_set1_epi8(2));
+                // if mismatch, -1
+                let mismatch_mask = _mm_andnot_si128(cmp, _mm_set1_epi8(1));
+                let diff = _mm_add_epi8(match_score, mismatch_mask);
+                // Horizontal sum
+                let mut tmp = [0i8; 16];
+                _mm_storeu_si128(tmp.as_mut_ptr() as *mut __m128i, diff);
+                score += tmp.iter().map(|x| *x as i32).sum::<i32>();
+                i += simd_chunk;
+            }
+            // Scalar fallback for remaining bases in this chunk
+            for (a, b) in bytes1[offset + i..chunk_end].iter().zip(&bytes2[offset + i..chunk_end]) {
+                score += if a == b { 2 } else { -1 };
+            }
+        }
+        total_score += score;
+        offset = chunk_end;
+        // progress reporting for WGS
+        if len > 100_000_000 { // 100MB threshold
+            let progress = (offset as f64 / len as f64) * 100.0;
+            if offset % (100 * CHUNK_SIZE) == 0 {
+                println!("Progress: {:.1}%", progress);
+            }
         }
     }
+    total_score
+}
 
-    unsafe {
-        let chunk = 16; // 16x u8 fits in __m128i
-
-        let mut i = 0;
-        while i + chunk <= len {
-            // loads 16 bytes into a 128 bit register (1 byte per 1 letter)
-            let a = _mm_loadu_si128(bytes1[i..].as_ptr() as *const __m128i);
-            // loads 16 bytes into a 128 bit register
-            let b = _mm_loadu_si128(bytes2[i..].as_ptr() as *const __m128i);
-
-            let cmp = _mm_cmpeq_epi8(a, b);
-            // if match, +2
-            let match_score = _mm_and_si128(cmp, _mm_set1_epi8(2));
-            // if mismatch, -1
-            let mismatch_mask = _mm_andnot_si128(cmp, _mm_set1_epi8(1));
-
-            let diff = _mm_add_epi8(match_score, mismatch_mask);
-
-            // horizontal sum
-            let mut tmp = [0i8; 16];
-            _mm_storeu_si128(tmp.as_mut_ptr() as *mut __m128i, diff);
-
-            score += tmp.iter().map(|x| *x as i32).sum::<i32>();
-
-            i += chunk;
-        }
-
-        // scalar fallback for remaining bases
-        for (a, b) in bytes1[i..].iter().zip(&bytes2[i..]) {
-            score += if a == b { 2 } else { -1 };
-        }
+// Function to read genome from file with memory-efficient streaming
+pub fn align_from_files(file1: &str, file2: &str) -> Result<i32, String> {
+    // Use the GPU aligner's file loading function for FASTQ files
+    match crate::gpu::aligner::load_sequence_from_file(file1) {
+        Ok(seq1) => {
+            match crate::gpu::aligner::load_sequence_from_file(file2) {
+                Ok(seq2) => {
+                    Ok(align(&seq1, &seq2))
+                },
+                Err(e) => Err(format!("Failed to load second file: {}", e))
+            }
+        },
+        Err(e) => Err(format!("Failed to load first file: {}", e))
     }
-    
-    score
 }
