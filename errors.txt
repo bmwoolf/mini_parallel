@@ -1,0 +1,840 @@
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v128.rs:46:1
+   |
+46 | impl_simd_array!([m128; 1]: m128x1 | i128);
+   | ------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:6:1
+   |
+6  | / impl_simd_array!(
+7  | |     [i8; 32]: i8x32 |
+8  | |     i8, i8, i8, i8,
+9  | |     i8, i8, i8, i8,
+...  |
+15 | |     i8, i8, i8, i8
+16 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:18:1
+   |
+18 | / impl_simd_array!(
+19 | |     [u8; 32]: u8x32 |
+20 | |     u8, u8, u8, u8,
+21 | |     u8, u8, u8, u8,
+...  |
+27 | |     u8, u8, u8, u8
+28 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:30:1
+   |
+30 | / impl_simd_array!(
+31 | |     [m8; 32]: m8x32 |
+32 | |     i8, i8, i8, i8,
+33 | |     i8, i8, i8, i8,
+...  |
+39 | |     i8, i8, i8, i8
+40 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:42:1
+   |
+42 | / impl_simd_array!(
+43 | |     [i16; 16]: i16x16 |
+44 | |     i16, i16, i16, i16,
+45 | |     i16, i16, i16, i16,
+46 | |     i16, i16, i16, i16,
+47 | |     i16, i16, i16, i16
+48 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:50:1
+   |
+50 | / impl_simd_array!(
+51 | |     [u16; 16]: u16x16 |
+52 | |     u16, u16, u16, u16,
+53 | |     u16, u16, u16, u16,
+54 | |     u16, u16, u16, u16,
+55 | |     u16, u16, u16, u16
+56 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:58:1
+   |
+58 | / impl_simd_array!(
+59 | |     [m16; 16]: m16x16 |
+60 | |     i16, i16, i16, i16,
+61 | |     i16, i16, i16, i16,
+62 | |     i16, i16, i16, i16,
+63 | |     i16, i16, i16, i16
+64 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:66:1
+   |
+66 | impl_simd_array!([i32; 8]: i32x8 | i32, i32, i32, i32, i32, i32, i32, i32);
+   | -------------------------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:67:1
+   |
+67 | impl_simd_array!([u32; 8]: u32x8 | u32, u32, u32, u32, u32, u32, u32, u32);
+   | -------------------------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:68:1
+   |
+68 | impl_simd_array!([f32; 8]: f32x8 | f32, f32, f32, f32, f32, f32, f32, f32);
+   | -------------------------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:69:1
+   |
+69 | impl_simd_array!([m32; 8]: m32x8 | i32, i32, i32, i32, i32, i32, i32, i32);
+   | -------------------------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:71:1
+   |
+71 | impl_simd_array!([i64; 4]: i64x4 | i64, i64, i64, i64);
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:72:1
+   |
+72 | impl_simd_array!([u64; 4]: u64x4 | u64, u64, u64, u64);
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:73:1
+   |
+73 | impl_simd_array!([f64; 4]: f64x4 | f64, f64, f64, f64);
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:74:1
+   |
+74 | impl_simd_array!([m64; 4]: m64x4 | i64, i64, i64, i64);
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:76:1
+   |
+76 | impl_simd_array!([i128; 2]: i128x2 | i128, i128);
+   | ------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:77:1
+   |
+77 | impl_simd_array!([u128; 2]: u128x2 | u128, u128);
+   | ------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v256.rs:78:1
+   |
+78 | impl_simd_array!([m128; 2]: m128x2 | i128, i128);
+   | ------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:6:1
+   |
+6  | / impl_simd_array!(
+7  | |     [i8; 64]: i8x64 |
+8  | |     i8, i8, i8, i8,
+9  | |     i8, i8, i8, i8,
+...  |
+24 | |     i8, i8, i8, i8
+25 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:27:1
+   |
+27 | / impl_simd_array!(
+28 | |     [u8; 64]: u8x64 |
+29 | |     u8, u8, u8, u8,
+30 | |     u8, u8, u8, u8,
+...  |
+45 | |     u8, u8, u8, u8
+46 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:48:1
+   |
+48 | / impl_simd_array!(
+49 | |     [m8; 64]: m8x64 |
+50 | |     i8, i8, i8, i8,
+51 | |     i8, i8, i8, i8,
+...  |
+66 | |     i8, i8, i8, i8
+67 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:69:1
+   |
+69 | / impl_simd_array!(
+70 | |     [i16; 32]: i16x32 |
+71 | |     i16, i16, i16, i16,
+72 | |     i16, i16, i16, i16,
+...  |
+78 | |     i16, i16, i16, i16
+79 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                  |
+   |                                  not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:81:1
+   |
+81 | / impl_simd_array!(
+82 | |     [u16; 32]: u16x32 |
+83 | |     u16, u16, u16, u16,
+84 | |     u16, u16, u16, u16,
+...  |
+90 | |     u16, u16, u16, u16
+91 | | );
+   | |_- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                  |
+    |                                  not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:93:1
+    |
+93  | / impl_simd_array!(
+94  | |     [m16; 32]: m16x32 |
+95  | |     i16, i16, i16, i16,
+96  | |     i16, i16, i16, i16,
+...   |
+102 | |     i16, i16, i16, i16
+103 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                  |
+    |                                  not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:106:1
+    |
+106 | / impl_simd_array!(
+107 | |     [i32; 16]: i32x16 |
+108 | |     i32, i32, i32, i32,
+109 | |     i32, i32, i32, i32,
+110 | |     i32, i32, i32, i32,
+111 | |     i32, i32, i32, i32
+112 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                  |
+    |                                  not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:114:1
+    |
+114 | / impl_simd_array!(
+115 | |     [u32; 16]: u32x16 |
+116 | |     u32, u32, u32, u32,
+117 | |     u32, u32, u32, u32,
+118 | |     u32, u32, u32, u32,
+119 | |     u32, u32, u32, u32
+120 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                  |
+    |                                  not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:122:1
+    |
+122 | / impl_simd_array!(
+123 | |     [f32; 16]: f32x16 |
+124 | |     f32, f32, f32, f32,
+125 | |     f32, f32, f32, f32,
+126 | |     f32, f32, f32, f32,
+127 | |     f32, f32, f32, f32
+128 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |           pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |           ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                  |
+    |                                  not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:130:1
+    |
+130 | / impl_simd_array!(
+131 | |     [m32; 16]: m32x16 |
+132 | |     i32, i32, i32, i32,
+133 | |     i32, i32, i32, i32,
+134 | |     i32, i32, i32, i32,
+135 | |     i32, i32, i32, i32
+136 | | );
+    | |_- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                |
+    |                                not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:138:1
+    |
+138 | impl_simd_array!([i64; 8]: i64x8 | i64, i64, i64, i64, i64, i64, i64, i64);
+    | -------------------------------------------------------------------------- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                |
+    |                                not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:139:1
+    |
+139 | impl_simd_array!([u64; 8]: u64x8 | u64, u64, u64, u64, u64, u64, u64, u64);
+    | -------------------------------------------------------------------------- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                |
+    |                                not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:140:1
+    |
+140 | impl_simd_array!([f64; 8]: f64x8 | f64, f64, f64, f64, f64, f64, f64, f64);
+    | -------------------------------------------------------------------------- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                |
+    |                                not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:141:1
+    |
+141 | impl_simd_array!([m64; 8]: m64x8 | i64, i64, i64, i64, i64, i64, i64, i64);
+    | -------------------------------------------------------------------------- in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                |
+    |                                not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:143:1
+    |
+143 | impl_simd_array!([i128; 4]: i128x4 | i128, i128, i128, i128);
+    | ------------------------------------------------------------ in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                |
+    |                                not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:144:1
+    |
+144 | impl_simd_array!([u128; 4]: u128x4 | u128, u128, u128, u128);
+    | ------------------------------------------------------------ in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+   --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+    |
+16  |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+    |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+    |                                |
+    |                                not an array
+    |
+   ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/v512.rs:145:1
+    |
+145 | impl_simd_array!([m128; 4]: m128x4 | i128, i128, i128, i128);
+    | ------------------------------------------------------------ in this macro invocation
+    |
+    = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:6:1
+   |
+6  | impl_simd_array!([isize; 2]: isizex2 | isize_, isize_);
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:7:1
+   |
+7  | impl_simd_array!([usize; 2]: usizex2 | usize_, usize_);
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:8:1
+   |
+8  | impl_simd_array!([msize; 2]: msizex2 | isize_, isize_);
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:10:1
+   |
+10 | impl_simd_array!([isize; 4]: isizex4 | isize_, isize_, isize_, isize_);
+   | ---------------------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:11:1
+   |
+11 | impl_simd_array!([usize; 4]: usizex4 | usize_, usize_, usize_, usize_);
+   | ---------------------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:12:1
+   |
+12 | impl_simd_array!([msize; 4]: msizex4 | isize_, isize_, isize_, isize_);
+   | ---------------------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:14:1
+   |
+14 | impl_simd_array!([isize; 8]: isizex8 | isize_, isize_, isize_, isize_, isize_, isize_, isize_, isize_);
+   | ------------------------------------------------------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:15:1
+   |
+15 | impl_simd_array!([usize; 8]: usizex8 | usize_, usize_, usize_, usize_, usize_, usize_, usize_, usize_);
+   | ------------------------------------------------------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen.rs:16:9
+   |
+16 |         pub struct $tuple_id($(pub(crate) $elem_tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^--------------------^^^^^
+   |                                |
+   |                                not an array
+   |
+  ::: /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vSize.rs:16:1
+   |
+16 | impl_simd_array!([msize; 8]: msizex8 | isize_, isize_, isize_, isize_, isize_, isize_, isize_, isize_);
+   | ------------------------------------------------------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_array` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vPtr.rs:8:9
+   |
+8  |         pub struct $tuple_id<$ty>($(pub(crate) $tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^---------------^^^^^
+   |                                     |
+   |                                     not an array
+...
+29 | impl_simd_ptr!([*const T; 2]: cptrx2 | T | T, T);
+   | ------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_ptr` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vPtr.rs:8:9
+   |
+8  |         pub struct $tuple_id<$ty>($(pub(crate) $tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^---------------^^^^^
+   |                                     |
+   |                                     not an array
+...
+30 | impl_simd_ptr!([*const T; 4]: cptrx4 | T | T, T, T, T);
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_ptr` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vPtr.rs:8:9
+   |
+8  |         pub struct $tuple_id<$ty>($(pub(crate) $tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^---------------^^^^^
+   |                                     |
+   |                                     not an array
+...
+31 | impl_simd_ptr!([*const T; 8]: cptrx8 | T | T, T, T, T, T, T, T, T);
+   | ------------------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_ptr` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vPtr.rs:8:9
+   |
+8  |         pub struct $tuple_id<$ty>($(pub(crate) $tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^---------------^^^^^
+   |                                     |
+   |                                     not an array
+...
+33 | impl_simd_ptr!([*mut T; 2]: mptrx2 | T | T, T);
+   | ---------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_ptr` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vPtr.rs:8:9
+   |
+8  |         pub struct $tuple_id<$ty>($(pub(crate) $tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^---------------^^^^^
+   |                                     |
+   |                                     not an array
+...
+34 | impl_simd_ptr!([*mut T; 4]: mptrx4 | T | T, T, T, T);
+   | ---------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_ptr` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0076]: SIMD vector's only field must be an array
+  --> /Users/bradleywoolf/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/packed_simd_2-0.3.8/src/codegen/vPtr.rs:8:9
+   |
+8  |         pub struct $tuple_id<$ty>($(pub(crate) $tys),*);
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^---------------^^^^^
+   |                                     |
+   |                                     not an array
+...
+35 | impl_simd_ptr!([*mut T; 8]: mptrx8 | T | T, T, T, T, T, T, T, T);
+   | ---------------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `impl_simd_ptr` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+   Compiling clap_derive v4.5.41
+   Compiling clap v4.5.41
+Some errors have detailed explanations: E0044, E0076, E0554, E0557, E0635, E0703.
+For more information about an error, try `rustc --explain E0044`.
+error: could not compile `packed_simd_2` (lib) due to 140 previous errors
+bradleywoolf@Bradleys-MacBook-Pro rustseq_mini % 
