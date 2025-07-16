@@ -8,6 +8,7 @@ clap = { version = "4.0", features = ["derive"] }
 num_cpus = "1.16"
 rayon = "1.8"  # Parallel processing for file pairs
 flate2 = "1.0"  # Gzip decompression for FASTQ files
+dotenv = "0.15"  # Environment variable loading
 
 # OpenCL dependencies for GPU acceleration
 ocl = "0.19"  # OpenCL bindings for Rust
