@@ -31,10 +31,42 @@ struct Args {
     /// number of files to process (for multi-file mode)
     #[arg(short, long)]
     num_files: Option<usize>,
+    
+    /// test mode: read WGS files from USB drive
+    #[arg(short, long, default_value = "false")]
+    test_wgs: bool,
 }
 
 fn main() {
     let args = Args::parse();
+    
+    // Test WGS files from USB drive
+    if args.test_wgs {
+        println!("Testing WGS file reading from USB drive...");
+        let wgs_path = "/media/bradley/64GB/";
+        
+        // Test reading first few files
+        let test_files = [
+            "102324-WGS-C3115440_S19_L001_R1_001.fastq.gz",
+            "102324-WGS-C3115440_S19_L001_R2_001.fastq.gz",
+        ];
+        
+        for file in &test_files {
+            let full_path = format!("{}{}", wgs_path, file);
+            println!("Testing: {}", full_path);
+            
+            match gpu::aligner::load_sequence_from_file(&full_path) {
+                Ok(seq) => {
+                    println!("✅ Successfully loaded {} bases from {}", seq.len(), file);
+                    println!("   First 100 bases: {}", &seq[..seq.len().min(100)]);
+                },
+                Err(e) => {
+                    println!("❌ Error loading {}: {}", file, e);
+                }
+            }
+        }
+        return;
+    }
     
     // Check GPU availability if requested
     if args.gpu {
