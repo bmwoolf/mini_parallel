@@ -12,7 +12,7 @@ T = G (-1)
 ...
 
 ## For my WGS:
-Alignment: compare to average reference genome
+Alignment: compare to average reference genome  
 Complementary: find what % of genome is not perfectly complementary (boooo)
 
 ## Setup for WGS Processing
