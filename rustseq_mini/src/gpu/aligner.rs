@@ -3,14 +3,93 @@
 
 use crate::gpu::{GpuAlignmentResult, GpuDevice, GPU_WORK_GROUP_SIZE, GPU_MAX_WORK_GROUPS};
 use ocl::{Buffer, Program, Kernel, MemFlags};
+use crate::benchmark::{start_benchmark, update_benchmark_progress, finish_benchmark};
 
-// Remove unused functions: gpu_align_16_files, gpu_align_against_reference
-// Remove unused imports inside functions
-// Remove unused mut from variables
-
-use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::fs::{File, OpenOptions};
+use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
+
+use serde::{Serialize, Deserialize};
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct FileCheckpoint {
+    pub file_path: String,
+    pub file_index: usize,
+    pub score: i32,
+    pub processing_time_ms: f64,
+    pub total_bases: usize,
+    pub total_reads: usize,
+    pub completed: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CheckpointState {
+    pub run_id: String,
+    pub files: Vec<FileCheckpoint>,
+    pub total_files: usize,
+    pub completed_files: usize,
+}
+
+impl CheckpointState {
+    pub fn new(run_id: String, total_files: usize) -> Self {
+        Self {
+            run_id,
+            files: Vec::new(),
+            total_files,
+            completed_files: 0,
+        }
+    }
+
+    pub fn save(&self) -> Result<(), String> {
+        let filename = format!("checkpoint_{}.json", self.run_id);
+        let json = serde_json::to_string_pretty(self)
+            .map_err(|e| format!("Failed to serialize checkpoint: {}", e))?;
+        
+        let mut file = OpenOptions::new()
+            .create(true)
+            .write(true)
+            .truncate(true)
+            .open(&filename)
+            .map_err(|e| format!("Failed to create checkpoint file: {}", e))?;
+        
+        file.write_all(json.as_bytes())
+            .map_err(|e| format!("Failed to write checkpoint: {}", e))?;
+        
+        Ok(())
+    }
+
+    pub fn load(run_id: &str) -> Result<Option<Self>, String> {
+        let filename = format!("checkpoint_{}.json", run_id);
+        match File::open(&filename) {
+            Ok(file) => {
+                let checkpoint: CheckpointState = serde_json::from_reader(file)
+                    .map_err(|e| format!("Failed to parse checkpoint: {}", e))?;
+                Ok(Some(checkpoint))
+            },
+            Err(_) => Ok(None), // No checkpoint file exists
+        }
+    }
+
+    pub fn add_file_result(&mut self, checkpoint: FileCheckpoint) -> Result<(), String> {
+        // Remove any existing entry for this file
+        self.files.retain(|f| f.file_index != checkpoint.file_index);
+        
+        // Add the new result
+        self.files.push(checkpoint);
+        
+        // Update completed count
+        self.completed_files = self.files.iter().filter(|f| f.completed).count();
+        
+        // Save checkpoint
+        self.save()?;
+        
+        Ok(())
+    }
+
+    pub fn is_file_completed(&self, file_index: usize) -> bool {
+        self.files.iter().any(|f| f.file_index == file_index && f.completed)
+    }
+}
 
 // Simple streaming FASTQ processor that yields chunks as they're read
 pub fn process_fastq_file_in_chunks<F>(filepath: &str, chunk_size_reads: usize, mut processor: F) -> Result<(), String> 
@@ -110,42 +189,75 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
         }
     }
     
-    let mut results = Vec::new();
     let total_files = files.len();
+    let chunk_size_reads: usize = std::env::var("GPU_CHUNK_SIZE_READS")
+        .unwrap_or_else(|_| "1000".to_string())
+        .parse()
+        .unwrap_or(1000);
+    
+    // Generate run ID for checkpointing
+    let run_id = format!("wgs_{}", chrono::Utc::now().timestamp());
+    
+    // Check for existing checkpoint
+    let mut checkpoint_state = match CheckpointState::load(&run_id)? {
+        Some(state) => {
+            println!("Found existing checkpoint: {} files completed", state.completed_files);
+            state
+        },
+        None => {
+            println!("No existing checkpoint found, starting fresh run ");
+            CheckpointState::new(run_id.clone(), total_files)
+        }
+    };
+    
+    // Start benchmarking
+    start_benchmark("full_wgs", chunk_size_reads, true);
     
     println!("Processing {} files (your complete genome)...", total_files);
-    println!("Estimated total reads: ~415 million");
-    println!("Estimated total base pairs: ~62 billion");
+    println!("Estimated total reads: ~415 million ");
+    println!("Estimated total base pairs: ~62 billion ");
     println!("Estimated genome coverage: ~19x");
+    println!("Checkpoint file: checkpoint_{}.json ", run_id);
     println!("==========================================");
     
+    // Process files sequentially to maintain checkpointing
+    let mut results = Vec::new();
+    
     for (i, file) in files.iter().enumerate() {
+        // Skip if already completed
+        if checkpoint_state.is_file_completed(i) {
+            println!("Skipping file {}/{} (already completed): {}", i+1, total_files, file.split('/').last().unwrap());
+            // Find the existing result
+            if let Some(existing) = checkpoint_state.files.iter().find(|f| f.file_index == i) {
+                results.push(GpuAlignmentResult {
+                    score: existing.score,
+                    processing_time_ms: existing.processing_time_ms,
+                    gpu_device: device.name.clone(),
+                });
+            }
+            continue;
+        }
+        
         println!("Processing file {}/{}: {}", i+1, total_files, file.split('/').last().unwrap());
-        
         let start_time = std::time::Instant::now();
-        
-        let chunk_size_reads: usize = std::env::var("GPU_CHUNK_SIZE_READS")
-            .unwrap_or_else(|_| "1000".to_string())  // Reduced from 10000 to 1000
-            .parse()
-            .unwrap_or(1000);
-        
         let mut total_score = 0;
         let mut processed_chunks = 0;
         let mut total_bases = 0;
+        let mut total_reads = 0;
+        println!("    Using chunk size: {} reads ", chunk_size_reads);
         
-        println!("    Using chunk size: {} reads", chunk_size_reads);
-        
-        // Process the file in chunks using our streaming processor
-        process_fastq_file_in_chunks(file, chunk_size_reads, |chunk| {
+        let process_result = process_fastq_file_in_chunks(file, chunk_size_reads, |chunk| {
             let seq = chunk.concat();
             total_bases += seq.len();
-            
+            total_reads += chunk.len();
             match gpu_align_chunk_self(&seq, device) {
                 Ok(score) => {
                     total_score += score;
                     processed_chunks += 1;
                     if processed_chunks % 10 == 0 {
                         println!("    Processed {} chunks ({} reads), current score: {}", processed_chunks, chunk.len(), total_score);
+                        // Update benchmark progress
+                        update_benchmark_progress(i+1, total_reads, total_bases, total_score);
                     }
                 },
                 Err(e) => {
@@ -153,21 +265,70 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
                 }
             }
             Ok(())
-        })?;
+        });
         
         let processing_time = start_time.elapsed();
         
-        println!("  ✅ File {} complete: Score={}, Bases={}, Time={:.2}s", i+1, total_score, total_bases, processing_time.as_secs_f64());
-        
-        results.push(GpuAlignmentResult {
-            score: total_score,
-            processing_time_ms: processing_time.as_millis() as f64,
-            _memory_used_mb: 0.0,
-            gpu_device: device.name.clone(),
-            _work_groups: 0,
-            _work_group_size: 0,
-        });
+        match process_result {
+            Ok(_) => {
+                println!("  File {} complete: Score={}, Bases={}, Time: {:.2} s ", i+1, total_score, total_bases, processing_time.as_secs_f64());
+                
+                // Save checkpoint for this file
+                let file_checkpoint = FileCheckpoint {
+                    file_path: file.clone(),
+                    file_index: i,
+                    score: total_score,
+                    processing_time_ms: processing_time.as_millis() as f64,
+                    total_bases,
+                    total_reads,
+                    completed: true,
+                };
+                
+                if let Err(e) = checkpoint_state.add_file_result(file_checkpoint) {
+                    println!("Warning: Failed to save checkpoint: {}", e);
+                }
+                
+                results.push(GpuAlignmentResult {
+                    score: total_score,
+                    processing_time_ms: processing_time.as_millis() as f64,
+                    gpu_device: device.name.clone(),
+                });
+            },
+            Err(e) => {
+                println!("  File {} failed: {}", i+1, e);
+                
+                // Save partial checkpoint for failed file
+                let file_checkpoint = FileCheckpoint {
+                    file_path: file.clone(),
+                    file_index: i,
+                    score: total_score,
+                    processing_time_ms: processing_time.as_millis() as f64,
+                    total_bases,
+                    total_reads,
+                    completed: false,
+                };
+                
+                if let Err(e) = checkpoint_state.add_file_result(file_checkpoint) {
+                    println!("Warning: Failed to save checkpoint: {}", e);
+                }
+                
+                return Err(format!("File {} failed: {}", i+1, e));
+            }
+        }
     }
+    
+    // Finish benchmarking
+    if let Some(benchmark_result) = finish_benchmark() {
+        println!("BENCHMARK RESULTS:");
+        println!("=====================");
+        println!("Total time: {:.2} s ", benchmark_result.total_time_seconds);
+        println!("Throughput: {:.0} reads/s, {:.0} bases/s ", 
+                benchmark_result.throughput_reads_per_second, benchmark_result.throughput_bases_per_second);
+        println!("GPU utilization: {:.1} %", benchmark_result.gpu_utilization_avg);
+        println!("Results saved to: benchmark_results.json ");
+    }
+    
+    println!("All files completed! Checkpoint saved to: checkpoint_{}.json ", run_id);
     
     Ok(results)
 }
@@ -212,54 +373,8 @@ pub fn gpu_align_pair(file1: &str, file2: &str, device: &GpuDevice) -> Result<Gp
     Ok(GpuAlignmentResult {
         score,
         processing_time_ms: processing_time.as_millis() as f64,
-        _memory_used_mb: 0.0, // Will be calculated
         gpu_device: device.name.clone(),
-        _work_groups: 0, // Will be calculated
-        _work_group_size: 0, // Will be calculated
     })
-}
-
-// Chunked GPU alignment for large sequences
-fn gpu_align_chunked(seq1: &str, seq2: &str, device: &GpuDevice, chunk_size: usize) -> Result<i32, String> {
-    let bytes1 = seq1.as_bytes();
-    let bytes2 = seq2.as_bytes();
-    let len1 = bytes1.len();
-    let len2 = bytes2.len();
-    
-    let mut total_score = 0;
-    let mut processed_chunks = 0;
-    
-    // Process sequences in chunks
-    for i in (0..len1).step_by(chunk_size) {
-        for j in (0..len2).step_by(chunk_size) {
-            let end1 = (i + chunk_size).min(len1);
-            let end2 = (j + chunk_size).min(len2);
-            
-            let chunk1 = &bytes1[i..end1];
-            let chunk2 = &bytes2[j..end2];
-            
-            // Convert chunks back to strings for alignment
-            let chunk1_str = String::from_utf8_lossy(chunk1);
-            let chunk2_str = String::from_utf8_lossy(chunk2);
-            
-            match gpu_align(&chunk1_str, &chunk2_str, device) {
-                Ok(score) => {
-                    total_score += score;
-                    processed_chunks += 1;
-                    if processed_chunks % 10 == 0 {
-                        println!("Processed {} chunks, current score: {}", processed_chunks, total_score);
-                    }
-                },
-                Err(e) => {
-                    println!("Warning: Failed to align chunk {}-{}: {}", i, j, e);
-                    // Continue with other chunks
-                }
-            }
-        }
-    }
-    
-    println!("Completed chunked alignment: {} chunks processed, final score: {}", processed_chunks, total_score);
-    Ok(total_score)
 }
 
 // Main GPU alignment function for two sequences using OpenCL
@@ -277,7 +392,7 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     let work_group_size = device.max_work_group_size.min(GPU_WORK_GROUP_SIZE);
     let work_groups_needed = (len + work_group_size - 1) / work_group_size;
     let work_groups = work_groups_needed.min(GPU_MAX_WORK_GROUPS);
-    println!("OpenCL Grid: {} work groups × {} work items = {} total work items", 
+    println!("OpenCL Grid: {} work groups x {} work items = {} total work items ", 
              work_groups, work_group_size, work_groups * work_group_size);
     // Create OpenCL buffers
     let seq1_buffer = Buffer::<u8>::builder()
