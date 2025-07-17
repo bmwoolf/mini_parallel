@@ -3,7 +3,7 @@
 
 use crate::gpu::{GpuAlignmentResult, GpuDevice, GPU_WORK_GROUP_SIZE, GPU_MAX_WORK_GROUPS};
 use ocl::{Buffer, Program, Kernel, MemFlags};
-use crate::benchmark::{start_benchmark, update_benchmark_progress, finish_benchmark};
+use crate::tools::benchmark::{start_benchmark, update_benchmark_progress, finish_benchmark};
 
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
