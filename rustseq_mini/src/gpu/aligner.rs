@@ -385,13 +385,21 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     if len == 0 {
         return Ok(0);
     }
-    // Initialize OpenCL
-    let (context, queue) = super::init_opencl()
-        .map_err(|e| format!("Failed to initialize OpenCL: {}", e))?;
+    
+    // Use shared OpenCL context to prevent resource exhaustion
+    let (context, queue, _ocl_device) = super::get_opencl_context()
+        .map_err(|e| format!("Failed to get OpenCL context: {}", e))?;
     // Calculate optimal OpenCL work group configuration
     let work_group_size = device.max_work_group_size.min(GPU_WORK_GROUP_SIZE);
     let work_groups_needed = (len + work_group_size - 1) / work_group_size;
     let work_groups = work_groups_needed.min(GPU_MAX_WORK_GROUPS);
+    
+    // Limit sequence size to prevent memory issues
+    let max_sequence_size = 1024 * 1024; // 1MB limit
+    if len > max_sequence_size {
+        return Err(format!("Sequence too large ({} bytes), max allowed: {}", len, max_sequence_size));
+    }
+    
     println!("OpenCL Grid: {} work groups x {} work items = {} total work items ", 
              work_groups, work_group_size, work_groups * work_group_size);
     // Create OpenCL buffers
