@@ -2,12 +2,18 @@
 // Optimized for RTX 4070 and cross-platform GPU support
 
 use ocl;
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
 
 pub mod aligner;
 
 // Restore only the needed constants
 pub const GPU_WORK_GROUP_SIZE: usize = 256; // Optimal for RTX 4070
 pub const GPU_MAX_WORK_GROUPS: usize = 65535; // Maximum OpenCL work groups
+
+// Global OpenCL context manager to prevent resource exhaustion
+static OPENCL_CONTEXT: Lazy<Mutex<Option<(ocl::Context, ocl::Queue, ocl::Device)>>> = 
+    Lazy::new(|| Mutex::new(None));
 
 // GPU device information
 #[derive(Debug, Clone)]
@@ -63,8 +69,23 @@ pub fn get_gpu_devices() -> Vec<GpuDevice> {
     devices_out
 }
 
+// Get or create OpenCL context and queue (thread-safe singleton)
+pub fn get_opencl_context() -> Result<(ocl::Context, ocl::Queue, ocl::Device), String> {
+    let mut context_guard = OPENCL_CONTEXT.lock().map_err(|e| format!("Failed to acquire context lock: {}", e))?;
+    
+    if let Some((context, queue, device)) = context_guard.as_ref() {
+        // Return clones of existing context
+        Ok((context.clone(), queue.clone(), device.clone()))
+    } else {
+        // Initialize new context
+        let (context, queue, device) = init_opencl()?;
+        *context_guard = Some((context.clone(), queue.clone(), device.clone()));
+        Ok((context, queue, device))
+    }
+}
+
 // Initialize OpenCL context and queue
-pub fn init_opencl() -> Result<(ocl::Context, ocl::Queue), String> {
+pub fn init_opencl() -> Result<(ocl::Context, ocl::Queue, ocl::Device), String> {
     let platforms = ocl::Platform::list();
     if platforms.is_empty() {
         return Err("No OpenCL platforms found".to_string());
@@ -83,5 +104,5 @@ pub fn init_opencl() -> Result<(ocl::Context, ocl::Queue), String> {
         .devices(device)
         .build()?;
     let queue = ocl::Queue::new(&context, device, None)?;
-    Ok((context, queue))
+    Ok((context, queue, device))
 } 
