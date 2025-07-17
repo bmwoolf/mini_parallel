@@ -39,6 +39,9 @@ cargo run -- --test-wgs --gpu
 
 # Process full WGS dataset
 cargo run -- --full-wgs --gpu
+
+# Run with Nsight Systems
+nsys profile -t opencl,cuda,osrt --output wgs_profile ./target/release/rustseq_mini --full-wgs --gpu
 ```
 
 ### File Naming Convention
