@@ -2,6 +2,19 @@
 name = "rustseq_mini"
 version = "0.1.0"
 edition = "2021"
+default-run = "rustseq_mini"
+
+[[bin]]
+name = "rustseq_mini"
+path = "src/main.rs"
+
+[[bin]]
+name = "linecount"
+path = "src/tools/linecount.rs"
+
+[[bin]]
+name = "stdin_linecount"
+path = "src/tools/stdin_linecount.rs"
 
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
