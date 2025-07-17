@@ -18,9 +18,7 @@ chrono = { version = "0.4", features = ["serde"] }
 once_cell = "1.19"
 
 [dev-dependencies]
-criterion = "0.5"  # Benchmarking
 flamegraph = "0.4"  # Performance profiling
-fastrand = "2.0"  # Random sequence generation for benchmarks
 
 [build-dependencies]
 cc = "1.0"
