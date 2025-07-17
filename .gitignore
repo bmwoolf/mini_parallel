@@ -28,3 +28,16 @@ Thumbs.db
 
 # performance for local testing
 performance.txt
+
+# Profiling outputs
+*.qdstrm
+*.qdrep
+*.sqlite
+
+# Test files
+test_*.txt
+test_*.fasta
+test_*.fastq
+
+# Checkpoint files
+checkpoint_*.json
