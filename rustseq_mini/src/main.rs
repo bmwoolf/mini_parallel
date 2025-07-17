@@ -3,7 +3,6 @@
 use clap::Parser;
 use std::env;
 mod gpu;
-mod smith_waterman;
 mod benchmark;
 
 #[derive(Parser)]
