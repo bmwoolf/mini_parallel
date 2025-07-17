@@ -394,10 +394,25 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     let work_groups_needed = (len + work_group_size - 1) / work_group_size;
     let work_groups = work_groups_needed.min(GPU_MAX_WORK_GROUPS);
     
-    // Limit sequence size to prevent memory issues
-    let max_sequence_size = 1024 * 1024; // 1MB limit
+    // Calculate realistic limits based on GPU capabilities
+    let gpu_memory_gb = device.memory_gb;
+    let available_memory_bytes = (gpu_memory_gb * 0.8) as usize * 1024 * 1024 * 1024; // Use 80% of GPU memory
+    
+    // OpenCL work group limits
+    let max_work_items = GPU_MAX_WORK_GROUPS * GPU_WORK_GROUP_SIZE; // 16,777,216
+    let max_sequence_by_work_groups = max_work_items;
+    
+    // Memory-based limit (accounting for both sequences + overhead)
+    let max_sequence_by_memory = available_memory_bytes / 4; // Conservative: 4x overhead
+    
+    // Use the smaller of the two limits
+    let max_sequence_size = max_sequence_by_work_groups.min(max_sequence_by_memory);
+    
     if len > max_sequence_size {
-        return Err(format!("Sequence too large ({} bytes), max allowed: {}", len, max_sequence_size));
+        return Err(format!(
+            "Sequence too large ({} bytes), max allowed: {} bytes ({} MB). GPU: {}GB, Work groups: {}",
+            len, max_sequence_size, max_sequence_size / (1024*1024), gpu_memory_gb, max_work_items
+        ));
     }
     
     println!("OpenCL Grid: {} work groups x {} work items = {} total work items ", 
