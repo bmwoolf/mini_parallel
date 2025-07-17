@@ -2,8 +2,9 @@
 
 use clap::Parser;
 use std::env;
-mod smith_waterman;
 mod gpu;
+mod smith_waterman;
+mod benchmark;
 
 #[derive(Parser)]
 #[command(name = "rustseq_mini")]
@@ -102,16 +103,14 @@ fn main() {
         ];
         
         for file in &test_files {
-            let full_path = format!("{}{}", wgs_path, file);
+            let full_path = format!("{}/{}", wgs_path, file);
             println!("Testing: {}", full_path);
-            
-            match gpu::aligner::load_sequence_from_file(&full_path) {
-                Ok(seq) => {
-                    println!("✅ Successfully loaded {} bases from {}", seq.len(), file);
-                    println!("   First 100 bases: {}", &seq[..seq.len().min(100)]);
+            match gpu::aligner::count_bases_in_fastq(&full_path) {
+                Ok(bases) => {
+                    println!("✅ Successfully counted {} bases in {}", bases, file);
                 },
                 Err(e) => {
-                    println!("❌ Error loading {}: {}", file, e);
+                    println!("❌ Error counting bases in {}: {}", file, e);
                 }
             }
         }
