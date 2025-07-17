@@ -3,7 +3,7 @@
 use clap::Parser;
 use std::env;
 mod gpu;
-mod benchmark;
+mod tools;
 
 #[derive(Parser)]
 #[command(name = "rustseq_mini")]
