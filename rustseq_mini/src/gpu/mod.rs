@@ -4,8 +4,6 @@
 use ocl;
 
 pub mod aligner;
-// pub mod memory; // Commented out as it's unused
-pub mod kernel;
 
 // Restore only the needed constants
 pub const GPU_WORK_GROUP_SIZE: usize = 256; // Optimal for RTX 4070
@@ -16,10 +14,7 @@ pub const GPU_MAX_WORK_GROUPS: usize = 65535; // Maximum OpenCL work groups
 pub struct GpuDevice {
     pub name: String,
     pub memory_gb: f32,
-    pub _compute_units: u32, // unused
     pub max_work_group_size: usize,
-    pub _opencl_version: String, // unused
-    pub _device_type: String,   // unused
 }
 
 // GPU alignment result
@@ -27,10 +22,7 @@ pub struct GpuDevice {
 pub struct GpuAlignmentResult {
     pub score: i32,
     pub processing_time_ms: f64,
-    pub _memory_used_mb: f64, // unused
     pub gpu_device: String,
-    pub _work_groups: usize, // unused
-    pub _work_group_size: usize, // unused
 }
 
 // Check if GPU is available using OpenCL
@@ -60,17 +52,11 @@ pub fn get_gpu_devices() -> Vec<GpuDevice> {
         for device in devices {
             let name = device.name().unwrap_or_else(|_| "Unknown".to_string());
             let memory_gb = 12.0; // RTX 4070 has 12GB VRAM
-            let _compute_units = 46; // RTX 4070 has 46 compute units
             let max_work_group_size = device.max_wg_size().unwrap_or(1024);
-            let _opencl_version = "OpenCL 3.0".to_string();
-            let _device_type = "GPU".to_string();
             devices_out.push(GpuDevice {
                 name,
                 memory_gb,
-                _compute_units,
                 max_work_group_size,
-                _opencl_version,
-                _device_type,
             });
         }
     }
