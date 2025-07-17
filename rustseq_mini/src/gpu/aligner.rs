@@ -10,56 +10,80 @@ use ocl::{Buffer, Program, Kernel, MemFlags};
 
 use std::fs::File;
 use std::io::{BufRead, BufReader};
-use flate2::read::GzDecoder;
+use std::process::{Command, Stdio};
 
-/// Streaming FASTQ chunk reader (yields Vec<String> of sequence lines)
-pub struct StreamingFastqChunkReader {
-    reader: Box<dyn BufRead>,
-    chunk_size_reads: usize,
-}
-
-impl StreamingFastqChunkReader {
-    pub fn new(filepath: &str, chunk_size_reads: usize) -> Result<Self, String> {
+// Simple streaming FASTQ processor that yields chunks as they're read
+pub fn process_fastq_file_in_chunks<F>(filepath: &str, chunk_size_reads: usize, mut processor: F) -> Result<(), String> 
+where F: FnMut(&[String]) -> Result<(), String> {
+    let reader: Box<dyn BufRead> = if filepath.ends_with(".gz") {
+        // Use system zcat for gzipped files (fixes flate2 issues with large files)
+        let child = Command::new("zcat")
+            .arg(filepath)
+            .stdout(Stdio::piped())
+            .spawn()
+            .map_err(|e| format!("Failed to spawn zcat for {}: {}", filepath, e))?;
+        
+        let stdout = child.stdout
+            .ok_or_else(|| format!("Failed to get stdout from zcat for {}", filepath))?;
+        
+        Box::new(BufReader::new(stdout))
+    } else {
+        // For non-gzipped files, use regular file reader
         let file = File::open(filepath)
             .map_err(|e| format!("Failed to open file {}: {}", filepath, e))?;
-        let reader: Box<dyn BufRead> = if filepath.ends_with(".gz") {
-            Box::new(BufReader::new(GzDecoder::new(file)))
-        } else {
-            Box::new(BufReader::new(file))
-        };
-        Ok(Self { reader, chunk_size_reads })
-    }
-}
-
-impl Iterator for StreamingFastqChunkReader {
-    type Item = Vec<String>; // Each chunk is a Vec of sequence lines
-    fn next(&mut self) -> Option<Self::Item> {
-        let mut chunk = Vec::with_capacity(self.chunk_size_reads);
-        let mut line = String::new();
-        let mut line_count = 0;
-        let mut seq_line_idx = 0;
-        loop {
-            line.clear();
-            let bytes = self.reader.read_line(&mut line).ok()?;
-            if bytes == 0 {
-                break;
-            }
-            line_count += 1;
-            if line_count % 4 == 2 {
-                // Sequence line
-                chunk.push(line.trim_end().to_string());
-                seq_line_idx += 1;
-                if seq_line_idx >= self.chunk_size_reads {
-                    break;
+        Box::new(BufReader::new(file))
+    };
+    
+    let mut chunk = Vec::with_capacity(chunk_size_reads);
+    let mut line_count = 0;
+    let mut total_reads = 0;
+    let mut error_count = 0;
+    
+    for line_result in reader.lines() {
+        match line_result {
+            Ok(line) => {
+                line_count += 1;
+                
+                if line_count % 4 == 2 {
+                    // This is a sequence line
+                    chunk.push(line);
+                    total_reads += 1;
+                    
+                    if chunk.len() >= chunk_size_reads {
+                        // Process this chunk
+                        processor(&chunk)?;
+                        chunk.clear();
+                    }
+                }
+                
+                // Debug output every 100,000 lines
+                if line_count % 100000 == 0 {
+                    println!("    Debug: Read {} lines, found {} reads, current chunk size: {}", line_count, total_reads, chunk.len());
+                }
+            },
+            Err(e) => {
+                error_count += 1;
+                if error_count <= 5 {
+                    println!("    Warning: Error reading line {}: {}", line_count, e);
+                }
+                if error_count > 10 {
+                    return Err(format!("Too many read errors (>10), stopping at line {}", line_count));
                 }
             }
         }
-        if chunk.is_empty() {
-            None
-        } else {
-            Some(chunk)
-        }
     }
+    
+    // Process any remaining reads in the final chunk
+    if !chunk.is_empty() {
+        processor(&chunk)?;
+    }
+    
+    println!("    Processed {} total reads in {} chunks", total_reads, (total_reads + chunk_size_reads - 1) / chunk_size_reads);
+    println!("    Total lines read: {}", line_count);
+    if error_count > 0 {
+        println!("    Total read errors: {}", error_count);
+    }
+    Ok(())
 }
 
 // Process full WGS dataset from all 16 files
@@ -81,7 +105,7 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
     let mut files = Vec::new();
     for lane in 1..=lanes {
         for read in 1..=reads_per_lane {
-            let filename = format!("{}_{:03}_R{}_001.fastq.gz", sample_id, lane, read);
+            let filename = format!("{}_L{:03}_R{}_001.fastq.gz", sample_id, lane, read);
             files.push(format!("{}/{}", wgs_path, filename));
         }
     }
@@ -101,29 +125,35 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
         let start_time = std::time::Instant::now();
         
         let chunk_size_reads: usize = std::env::var("GPU_CHUNK_SIZE_READS")
-            .unwrap_or_else(|_| "10000".to_string())
+            .unwrap_or_else(|_| "1000".to_string())  // Reduced from 10000 to 1000
             .parse()
-            .unwrap_or(10000);
+            .unwrap_or(1000);
+        
         let mut total_score = 0;
         let mut processed_chunks = 0;
         let mut total_bases = 0;
-        let mut reader = StreamingFastqChunkReader::new(file, chunk_size_reads)?;
-        while let Some(chunk) = reader.next() {
+        
+        println!("    Using chunk size: {} reads", chunk_size_reads);
+        
+        // Process the file in chunks using our streaming processor
+        process_fastq_file_in_chunks(file, chunk_size_reads, |chunk| {
             let seq = chunk.concat();
             total_bases += seq.len();
+            
             match gpu_align_chunk_self(&seq, device) {
                 Ok(score) => {
                     total_score += score;
                     processed_chunks += 1;
                     if processed_chunks % 10 == 0 {
-                        println!("    Processed {} chunks, current score: {}", processed_chunks, total_score);
+                        println!("    Processed {} chunks ({} reads), current score: {}", processed_chunks, chunk.len(), total_score);
                     }
                 },
                 Err(e) => {
                     println!("    Warning: Failed to align chunk {}: {}", processed_chunks, e);
                 }
             }
-        }
+            Ok(())
+        })?;
         
         let processing_time = start_time.elapsed();
         
@@ -155,21 +185,30 @@ fn gpu_align_chunk_self(chunk: &str, device: &GpuDevice) -> Result<i32, String> 
 
 // GPU alignment for a single pair of files
 pub fn gpu_align_pair(file1: &str, file2: &str, device: &GpuDevice) -> Result<GpuAlignmentResult, String> {
-    // Load sequences from files
-    let seq1 = load_sequence_from_file(file1)?;
-    let seq2 = load_sequence_from_file(file2)?;
-    
+    // Count total bases in each file
+    let bases1 = count_bases_in_fastq(file1)?;
+    let bases2 = count_bases_in_fastq(file2)?;
+    println!("Loaded {} bases from {}", bases1, file1);
+    println!("Loaded {} bases from {}", bases2, file2);
+    // For actual alignment, just use the chunked logic (no need to load all into memory)
     // Use chunked alignment for large sequences
     let start_time = std::time::Instant::now();
-    let score = if seq1.len() > 100000 || seq2.len() > 100000 {
-        println!("Large sequences detected ({} and {} bases), using chunked alignment", seq1.len(), seq2.len());
-        gpu_align_chunked(&seq1, &seq2, device, 50000)? // 50KB chunks
-    } else {
-        gpu_align(&seq1, &seq2, device)?
+    let score = {
+        // We'll just align the first chunk of each file for demonstration (or you can implement full pairwise chunked alignment)
+        // For now, use the same chunked logic as before
+        let mut total_score = 0;
+        process_fastq_file_in_chunks(file1, 100_000, |chunk1| {
+            process_fastq_file_in_chunks(file2, 100_000, |chunk2| {
+                let seq1 = chunk1.concat();
+                let seq2 = chunk2.concat();
+                total_score += gpu_align(&seq1, &seq2, device)?;
+                Ok(())
+            })?;
+            Ok(())
+        })?;
+        total_score
     };
-    
     let processing_time = start_time.elapsed();
-    
     Ok(GpuAlignmentResult {
         score,
         processing_time_ms: processing_time.as_millis() as f64,
@@ -292,34 +331,13 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     Ok(result[0])
 }
 
-// Load sequence from FASTQ file (compressed or uncompressed)
-pub fn load_sequence_from_file(filepath: &str) -> Result<String, String> {
-    use std::fs::File;
-    use std::io::{BufRead, BufReader};
-    use flate2::read::GzDecoder;
-    let file = File::open(filepath)
-        .map_err(|e| format!("Failed to open file {}: {}", filepath, e))?;
-    // Handle gzipped files
-    let reader: Box<dyn BufRead> = if filepath.ends_with(".gz") {
-        Box::new(BufReader::new(GzDecoder::new(file)))
-    } else {
-        Box::new(BufReader::new(file))
-    };
-    let mut sequence = String::new();
-    let mut line_count = 0;
-    for line in reader.lines() {
-        let line = line.map_err(|e| format!("Failed to read line: {}", e))?;
-        line_count += 1;
-        // FASTQ format: sequence is on line 2, 6, 10, etc. (every 4th line starting from line 2)
-        if line_count % 4 == 2 {
-            // This is a sequence line
-            sequence.push_str(&line);
-        }
-        // Skip header lines (line 1, 5, 9, etc.) and quality scores (line 4, 8, 12, etc.)
-    }
-    if sequence.is_empty() {
-        return Err(format!("No sequence data found in {}", filepath));
-    }
-    println!("Loaded {} bases from {}", sequence.len(), filepath);
-    Ok(sequence)
+/// Count total bases in a FASTQ file (compressed or uncompressed), streaming and chunked
+pub fn count_bases_in_fastq(filepath: &str) -> Result<usize, String> {
+    let mut total_bases = 0usize;
+    // Use a large chunk size for efficiency
+    process_fastq_file_in_chunks(filepath, 100_000, |chunk| {
+        total_bases += chunk.iter().map(|seq| seq.len()).sum::<usize>();
+        Ok(())
+    })?;
+    Ok(total_bases)
 } 
