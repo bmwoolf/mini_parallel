@@ -3,10 +3,8 @@
 use clap::Parser;
 use std::env;
 mod gpu;
+mod tools;
 mod aligner;
-mod benchmark;
-mod linecount;
-mod stdin_linecount;
 
 #[derive(Parser)]
 #[command(name = "rustseq_mini")]

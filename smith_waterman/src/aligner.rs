@@ -1,9 +1,9 @@
 // GPU-accelerated sequence aligner using OpenCL
 // Handles the main alignment logic and orchestrates GPU operations
 
-use crate::gpu::{GpuAlignmentResult, GpuDevice, GPU_WORK_GROUP_SIZE, GPU_MAX_WORK_GROUPS};
+use crate::gpu::{GpuAlignmentResult, GpuDevice, GPU_WORK_GROUP_SIZE, GPU_MAX_WORK_GROUPS, get_opencl_context};
 use ocl::{Buffer, Program, Kernel, MemFlags};
-use crate::benchmark::{start_benchmark, update_benchmark_progress, finish_benchmark};
+use crate::tools::benchmark::{start_benchmark, update_benchmark_progress, finish_benchmark};
 
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
@@ -387,7 +387,7 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     }
     
     // Use shared OpenCL context to prevent resource exhaustion
-    let (context, queue, _ocl_device) = super::get_opencl_context()
+    let (context, queue, _ocl_device) = get_opencl_context()
         .map_err(|e| format!("Failed to get OpenCL context: {}", e))?;
     // Calculate optimal OpenCL work group configuration
     let work_group_size = device.max_work_group_size.min(GPU_WORK_GROUP_SIZE);
@@ -439,7 +439,7 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
         .build()
         .map_err(|e| format!("Failed to create result buffer: {}", e))?;
     // Create and build OpenCL program
-    let program_src = include_str!("kernels/smith_waterman.cl");
+    let program_src = include_str!("smith_waterman.cl");
     let program = Program::builder()
         .src(program_src)
         .build(&context)
