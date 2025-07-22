@@ -47,23 +47,49 @@ pub fn is_gpu_available() -> bool {
 // Get available GPU devices using OpenCL
 pub fn get_gpu_devices() -> Vec<GpuDevice> {
     let mut devices_out = Vec::new();
-    let platforms = ocl::Platform::list();
-    for platform in platforms {
-        let devices = match ocl::Device::list(platform, Some(ocl::flags::DEVICE_TYPE_GPU)) {
-            Ok(devs) => devs,
-            Err(_) => continue,
-        };
-        for device in devices {
-            let name = device.name().unwrap_or_else(|_| "Unknown".to_string());
-            let memory_gb = 12.0; // RTX 4070 has 12GB VRAM
-            let max_work_group_size = device.max_wg_size().unwrap_or(1024);
-            devices_out.push(GpuDevice {
-                name,
-                memory_gb,
-                max_work_group_size,
-            });
+    
+    // Use centralized system information
+    if let Ok(system_info) = crate::system_info::get_system_info() {
+        let platforms = ocl::Platform::list();
+        for platform in platforms {
+            let devices = match ocl::Device::list(platform, Some(ocl::flags::DEVICE_TYPE_GPU)) {
+                Ok(devs) => devs,
+                Err(_) => continue,
+            };
+            for device in devices {
+                let name = device.name().unwrap_or_else(|_| system_info.gpu_name.clone());
+                let memory_gb = system_info.gpu_memory_gb as f32;
+                let max_work_group_size = device.max_wg_size().unwrap_or(1024);
+                devices_out.push(GpuDevice {
+                    name,
+                    memory_gb,
+                    max_work_group_size,
+                });
+            }
         }
     }
+    
+    // Fallback if system info is not available
+    if devices_out.is_empty() {
+        let platforms = ocl::Platform::list();
+        for platform in platforms {
+            let devices = match ocl::Device::list(platform, Some(ocl::flags::DEVICE_TYPE_GPU)) {
+                Ok(devs) => devs,
+                Err(_) => continue,
+            };
+            for device in devices {
+                let name = device.name().unwrap_or_else(|_| "Unknown".to_string());
+                let memory_gb = 8.0; // Conservative fallback
+                let max_work_group_size = device.max_wg_size().unwrap_or(1024);
+                devices_out.push(GpuDevice {
+                    name,
+                    memory_gb,
+                    max_work_group_size,
+                });
+            }
+        }
+    }
+    
     devices_out
 }
 
