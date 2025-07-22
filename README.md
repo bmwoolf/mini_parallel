@@ -1,8 +1,5 @@
-# STATUS: PAUSED
-it works, but keeps maxing out my gpu. after debugging memory and storage limits, i am done. i am building a gpu tool for cloud providers since i have so many projects beyond this. but learned a lot about gpus and actual hpc techniques, albeit introductory and small on 1 gpu
-
 # mini_parallel
-mini core bioinformatics algorithms 
+mini core bioinformatics algorithms- Smith-Waterman, k-mer, and variant calling (with DeepVariant), all run on a 50GB WGS from Nucleus. 
 
 ## Smith-Waterman
 DNA sequence alignment using SIMD instructions. Compares two DNA sequences and scores how well the letters line up. Match gets +2 and Mismatch gets -1.
