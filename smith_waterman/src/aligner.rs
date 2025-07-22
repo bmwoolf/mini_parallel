@@ -394,9 +394,14 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     let work_groups_needed = (len + work_group_size - 1) / work_group_size;
     let work_groups = work_groups_needed.min(GPU_MAX_WORK_GROUPS);
     
-    // Calculate realistic limits based on GPU capabilities
-    let gpu_memory_gb = device.memory_gb;
-    let available_memory_bytes = (gpu_memory_gb * 0.8) as usize * 1024 * 1024 * 1024; // Use 80% of GPU memory
+    // Use centralized system information for memory calculations
+    let available_memory_bytes = if let Ok(system_info) = crate::system_info::get_system_info() {
+        system_info.available_gpu_memory_bytes()
+    } else {
+        // Fallback to device memory if system info is not available
+        let gpu_memory_gb = device.memory_gb;
+        (gpu_memory_gb * 0.8) as usize * 1024 * 1024 * 1024
+    };
     
     // OpenCL work group limits
     let max_work_items = GPU_MAX_WORK_GROUPS * GPU_WORK_GROUP_SIZE; // 16,777,216
@@ -409,8 +414,14 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     let max_sequence_size = max_sequence_by_work_groups.min(max_sequence_by_memory);
     
     if len > max_sequence_size {
+        let gpu_memory_gb = if let Ok(system_info) = crate::system_info::get_system_info() {
+            system_info.gpu_memory_gb
+        } else {
+            device.memory_gb as f64
+        };
+        
         return Err(format!(
-            "Sequence too large ({} bytes), max allowed: {} bytes ({} MB). GPU: {}GB, Work groups: {}",
+            "Sequence too large ({} bytes), max allowed: {} bytes ({} MB). GPU: {:.1}GB, Work groups: {}",
             len, max_sequence_size, max_sequence_size / (1024*1024), gpu_memory_gb, max_work_items
         ));
     }
