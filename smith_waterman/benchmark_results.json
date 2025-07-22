@@ -1,0 +1,25 @@
+[
+  {
+    "timestamp": "2025-07-22T16:36:36.717072533Z",
+    "run_id": "run_1753199968",
+    "mode": "full_wgs",
+    "files_processed": 16,
+    "total_reads": 51290000,
+    "total_bases": 7469314282,
+    "total_score": 102580,
+    "total_time_seconds": 2227.991438092,
+    "throughput_reads_per_second": 23020.73478519449,
+    "throughput_bases_per_second": 3352487.875086516,
+    "chunk_size": 1000,
+    "gpu_utilization_avg": 25.0,
+    "gpu_memory_used_mb": 400.0,
+    "cpu_cores_used": 24,
+    "parallel_files": true,
+    "system_info": {
+      "gpu_name": "NVIDIA GeForce RTX 4070i",
+      "gpu_memory_gb": 12.3,
+      "cpu_cores": 24,
+      "total_ram_gb": 31.2
+    }
+  }
+]
