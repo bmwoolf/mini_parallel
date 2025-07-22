@@ -48,6 +48,11 @@ fn main() {
     // Load environment variables from .env file
     dotenv::dotenv().ok();
     
+    // Display system information at startup
+    if let Ok(system_info) = system_info::get_system_info() {
+        system_info.print_info();
+    }
+    
     let args = Args::parse();
     
     // Display system information at startup
