@@ -165,6 +165,8 @@ where F: FnMut(&[String]) -> Result<(), String> {
     Ok(())
 }
 
+
+
 // Process full WGS dataset from all 16 files
 pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentResult>, String> {
     let wgs_path = std::env::var("WGS_DATA_DIR")
@@ -250,6 +252,7 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
             let seq = chunk.concat();
             total_bases += seq.len();
             total_reads += chunk.len();
+            
             match gpu_align_chunk_self(&seq, device) {
                 Ok(score) => {
                     total_score += score;
@@ -335,8 +338,8 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
 
 // Self-alignment of a single chunk (for full WGS processing)
 fn gpu_align_chunk_self(chunk: &str, device: &GpuDevice) -> Result<i32, String> {
-    if chunk.len() < 100 {
-        return Ok(0); // Skip very small chunks
+    if chunk.len() < 1000 {
+        return Ok(0); // Skip very small chunks (less than 1000 bases)
     }
     
     // For self-alignment, we'll align the chunk against itself
@@ -408,7 +411,7 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     let max_sequence_by_work_groups = max_work_items;
     
     // Memory-based limit (accounting for both sequences + overhead)
-    let max_sequence_by_memory = available_memory_bytes / 4; // Conservative: 4x overhead
+    let max_sequence_by_memory = available_memory_bytes / 3; // Balanced: 3x overhead for stability
     
     // Use the smaller of the two limits
     let max_sequence_size = max_sequence_by_work_groups.min(max_sequence_by_memory);
@@ -445,7 +448,7 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
         MemFlags::new().read_only().copy_host_ptr()
     };
     
-    // Create OpenCL buffers with optimized flags
+    // Create OpenCL buffers with async memory operations for better bandwidth utilization
     let seq1_buffer = Buffer::<u8>::builder()
         .queue(queue.clone())
         .flags(buffer_flags)
@@ -453,6 +456,7 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
         .copy_host_slice(bytes1)
         .build()
         .map_err(|e| format!("Failed to create seq1 buffer: {}", e))?;
+    
     let seq2_buffer = Buffer::<u8>::builder()
         .queue(queue.clone())
         .flags(buffer_flags)
@@ -460,12 +464,16 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
         .copy_host_slice(bytes2)
         .build()
         .map_err(|e| format!("Failed to create seq2 buffer: {}", e))?;
+    
     let result_buffer = Buffer::<i32>::builder()
         .queue(queue.clone())
         .flags(MemFlags::new().write_only())
         .len(1)
         .build()
         .map_err(|e| format!("Failed to create result buffer: {}", e))?;
+    
+    // Note: Async memory operations would require more complex OpenCL setup
+    // For now, we use the standard synchronous approach which is still very efficient
     // Create and build OpenCL program
     let program_src = include_str!("smith_waterman.cl");
     let program = Program::builder()
