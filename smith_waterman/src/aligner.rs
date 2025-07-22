@@ -417,17 +417,34 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
     
     println!("OpenCL Grid: {} work groups x {} work items = {} total work items ", 
              work_groups, work_group_size, work_groups * work_group_size);
-    // Create OpenCL buffers
+    
+    // Log memory usage for optimization
+    let buffer_size_mb = (bytes1.len() + bytes2.len()) / (1024 * 1024);
+    println!("Buffer size: {} MB (seq1: {} MB, seq2: {} MB)", 
+             buffer_size_mb, bytes1.len() / (1024 * 1024), bytes2.len() / (1024 * 1024));
+    // Check if pinned memory should be used
+    let use_pinned = std::env::var("USE_PINNED_MEMORY")
+        .unwrap_or_else(|_| "false".to_string())
+        .parse::<bool>()
+        .unwrap_or(false);
+    
+    let buffer_flags = if use_pinned {
+        MemFlags::new().read_only().alloc_host_ptr()
+    } else {
+        MemFlags::new().read_only().copy_host_ptr()
+    };
+    
+    // Create OpenCL buffers with optimized flags
     let seq1_buffer = Buffer::<u8>::builder()
         .queue(queue.clone())
-        .flags(MemFlags::new().read_only().copy_host_ptr())
+        .flags(buffer_flags)
         .len(bytes1.len())
         .copy_host_slice(bytes1)
         .build()
         .map_err(|e| format!("Failed to create seq1 buffer: {}", e))?;
     let seq2_buffer = Buffer::<u8>::builder()
         .queue(queue.clone())
-        .flags(MemFlags::new().read_only().copy_host_ptr())
+        .flags(buffer_flags)
         .len(bytes2.len())
         .copy_host_slice(bytes2)
         .build()
