@@ -6,8 +6,8 @@ use once_cell::sync::Lazy;
 use std::sync::Mutex;
 
 // Restore only the needed constants
-pub const GPU_WORK_GROUP_SIZE: usize = 256; // Optimal for RTX 4070
-pub const GPU_MAX_WORK_GROUPS: usize = 65535; // Maximum OpenCL work groups
+pub const GPU_WORK_GROUP_SIZE: usize = 512; // Balanced for RTX 4070 Ti stability
+pub const GPU_MAX_WORK_GROUPS: usize = 65535; // Back to stable maximum
 
 // Global OpenCL context manager to prevent resource exhaustion
 static OPENCL_CONTEXT: Lazy<Mutex<Option<(ocl::Context, ocl::Queue, ocl::Device)>>> = 
