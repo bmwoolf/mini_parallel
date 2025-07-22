@@ -5,6 +5,7 @@ use std::env;
 mod gpu;
 mod tools;
 mod aligner;
+mod system_info;
 
 #[derive(Parser)]
 #[command(name = "rustseq_mini")]
@@ -48,6 +49,18 @@ fn main() {
     dotenv::dotenv().ok();
     
     let args = Args::parse();
+    
+    // Display system information at startup
+    println!("Detecting system information...");
+    match system_info::get_system_info() {
+        Ok(system_info) => {
+            system_info.print_info();
+        }
+        Err(e) => {
+            println!("Warning: Could not detect system information: {}", e);
+            println!("Using fallback values for GPU memory and system specs");
+        }
+    }
     
     // Process full WGS dataset
     if args.full_wgs {
