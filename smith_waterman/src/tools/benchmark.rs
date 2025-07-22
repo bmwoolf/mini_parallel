@@ -124,15 +124,22 @@ impl BenchmarkTracker {
     }
 
     fn get_system_info(&self) -> SystemInfo {
-        // Get GPU info from nvidia-smi (simplified)
-        let gpu_name = "NVIDIA GeForce RTX 4070i".to_string(); // Could parse from nvidia-smi
-        let gpu_memory_gb = 12.3; // 12.3GB
-        
-        SystemInfo {
-            gpu_name,
-            gpu_memory_gb,
-            cpu_cores: num_cpus::get(),
-            total_ram_gb: 31.2, // From earlier free -h output
+        // Use centralized system information
+        if let Ok(system_info) = crate::system_info::get_system_info() {
+            SystemInfo {
+                gpu_name: system_info.gpu_name.clone(),
+                gpu_memory_gb: system_info.gpu_memory_gb,
+                cpu_cores: system_info.cpu_cores,
+                total_ram_gb: system_info.total_ram_gb,
+            }
+        } else {
+            // Fallback values
+            SystemInfo {
+                gpu_name: "Unknown GPU".to_string(),
+                gpu_memory_gb: 8.0,
+                cpu_cores: num_cpus::get(),
+                total_ram_gb: 16.0,
+            }
         }
     }
 
