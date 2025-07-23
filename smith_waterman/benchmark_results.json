@@ -1,25 +1,25 @@
 [
   {
-    "timestamp": "2025-07-22T16:36:36.717072533Z",
-    "run_id": "run_1753199968",
+    "timestamp": "2025-07-22T21:16:39.344321801Z",
+    "run_id": "run_1753217375",
     "mode": "full_wgs",
     "files_processed": 16,
-    "total_reads": 51290000,
-    "total_bases": 7469314282,
-    "total_score": 102580,
-    "total_time_seconds": 2227.991438092,
-    "throughput_reads_per_second": 23020.73478519449,
-    "throughput_bases_per_second": 3352487.875086516,
-    "chunk_size": 1000,
+    "total_reads": 51000000,
+    "total_bases": 7426849951,
+    "total_score": 1020,
+    "total_time_seconds": 1623.830903654,
+    "throughput_reads_per_second": 31407.211111229655,
+    "throughput_bases_per_second": 4573659.692205542,
+    "chunk_size": 100000,
     "gpu_utilization_avg": 25.0,
     "gpu_memory_used_mb": 400.0,
     "cpu_cores_used": 24,
     "parallel_files": true,
     "system_info": {
-      "gpu_name": "NVIDIA GeForce RTX 4070i",
-      "gpu_memory_gb": 12.3,
+      "gpu_name": "NVIDIA GeForce RTX 4070 Ti",
+      "gpu_memory_gb": 11.994140625,
       "cpu_cores": 24,
-      "total_ram_gb": 31.2
+      "total_ram_gb": 31.154979705810547
     }
   }
 ]
