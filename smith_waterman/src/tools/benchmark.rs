@@ -426,32 +426,13 @@ pub fn start_benchmark(mode: &str, chunk_size: usize, parallel_files: bool) {
     }
 }
 
-fn get_next_run_number() -> u64 {
-    // Try to get from perf_logger first
-    if let Some(run_number) = crate::perf_logger::get_current_run_number() {
-        return run_number;
-    }
+pub fn get_next_run_number() -> u64 {
+    // Use a static counter to ensure unique run numbers
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static RUN_COUNTER: AtomicU64 = AtomicU64::new(0);
     
-    // Fallback: find the highest existing run number and add 1
-    if let Ok(entries) = std::fs::read_dir("benchmark_results") {
-        let mut max_run = 0u64;
-        for entry in entries {
-            if let Ok(entry) = entry {
-                if let Some(file_name) = entry.file_name().to_str() {
-                    if file_name.starts_with("run_") && file_name.ends_with("_benchmark_results.json") {
-                        if let Some(run_str) = file_name.strip_prefix("run_").and_then(|s| s.strip_suffix("_benchmark_results.json")) {
-                            if let Ok(run_num) = run_str.parse::<u64>() {
-                                max_run = max_run.max(run_num);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        max_run + 1
-    } else {
-        1 // First run
-    }
+    // Increment and get the next run number
+    RUN_COUNTER.fetch_add(1, Ordering::SeqCst) + 1
 }
 
 pub fn update_benchmark_progress(files_processed: usize, reads: usize, bases: usize, score: i32) {

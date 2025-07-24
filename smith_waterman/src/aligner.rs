@@ -50,7 +50,10 @@ impl CheckpointState {
     }
 
     pub fn save(&self) -> Result<(), String> {
-        let filename = format!("checkpoint_{}.json", self.run_id);
+        // Get the current run number from benchmark system
+        let run_number = crate::tools::benchmark::get_next_run_number();
+        let filename = format!("checkpoint_run_{}.json", run_number);
+        
         let json = serde_json::to_string_pretty(self)
             .map_err(|e| format!("Failed to serialize checkpoint: {}", e))?;
         
@@ -335,7 +338,14 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
         }
     }
     
-    // Finish benchmarking
+    // Finish benchmarking with final totals from checkpoint
+    let final_totals = checkpoint_state.files.iter().fold((0, 0, 0, 0), |(files, reads, bases, score), file| {
+        (files + 1, reads + file.total_reads, bases + file.total_bases, score + file.score)
+    });
+    
+    // Update benchmark with final totals before finishing
+    update_benchmark_progress(final_totals.0, final_totals.1, final_totals.2, final_totals.3);
+    
     if let Some(benchmark_result) = finish_benchmark() {
         println!("BENCHMARK RESULTS:");
         println!("=====================");
