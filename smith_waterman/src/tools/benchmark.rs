@@ -1,8 +1,17 @@
-use std::fs::OpenOptions;
-use std::io::Write;
+use std::fs::{OpenOptions, create_dir_all};
+use std::io::{Write, BufRead};
 use std::time::Instant;
 use serde::{Serialize, Deserialize};
 use chrono::{DateTime, Utc};
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct CpuUtilizationSummary {
+    pub avg_user_percent: f64,
+    pub avg_system_percent: f64,
+    pub avg_idle_percent: f64,
+    pub max_user_percent: f64,
+    pub max_system_percent: f64,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BenchmarkResult {
@@ -59,6 +68,7 @@ impl BenchmarkTracker {
     }
 
     pub fn start_run(&mut self, mode: &str, chunk_size: usize, parallel_files: bool) {
+        let run_number = get_next_run_number();
         let run_id = format!("run_{}", chrono::Utc::now().timestamp());
         self.current_run = Some(BenchmarkRun {
             run_id: run_id.clone(),
@@ -70,7 +80,7 @@ impl BenchmarkTracker {
             chunk_size,
             parallel_files,
         });
-        println!("Starting benchmark run: {} (run_id: {})", mode, run_id);
+        println!("Starting benchmark run #{}: {} (run_id: {})", run_number, mode, run_id);
     }
 
     pub fn update_progress(&mut self, files_processed: usize, reads: usize, bases: usize, score: i32) {
@@ -120,6 +130,9 @@ impl BenchmarkTracker {
                 result.throughput_reads_per_second, result.throughput_bases_per_second);
         println!("   GPU utilization: {:0.1}", result.gpu_utilization_avg);
         
+        // Output system monitoring summary
+        self.output_monitoring_summary(&run_id);
+        
         Some(result)
     }
 
@@ -150,7 +163,36 @@ impl BenchmarkTracker {
     }
 
     fn save_results(&self) {
-        let filename = "benchmark_results.json";
+        // Create benchmark_results directory if it doesn't exist
+        if let Err(e) = create_dir_all("benchmark_results") {
+            eprintln!("Failed to create benchmark_results directory: {}", e);
+            return;
+        }
+        
+        // Get current run number
+        let run_number = get_next_run_number();
+        let filename = format!("benchmark_results/run_{}_benchmark_results.json", run_number);
+        
+        // Save individual run result
+        if let Some(result) = self.results.last() {
+            let json = serde_json::to_string_pretty(result)
+                .expect("Failed to serialize benchmark result");
+            
+            if let Ok(mut file) = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(&filename) {
+                if let Err(e) = file.write_all(json.as_bytes()) {
+                    eprintln!("Failed to write benchmark result: {}, {}", e, filename);
+                } else {
+                    println!("Benchmark results saved to: {}", filename);
+                }
+            }
+        }
+        
+        // Also save to the legacy file for backward compatibility
+        let legacy_filename = "benchmark_results.json";
         let json = serde_json::to_string_pretty(&self.results)
             .expect("Failed to serialize benchmark results");
         
@@ -158,11 +200,217 @@ impl BenchmarkTracker {
             .create(true)
             .write(true)
             .truncate(true)
-            .open(filename) {
+            .open(legacy_filename) {
             if let Err(e) = file.write_all(json.as_bytes()) {
-                eprintln!("Failed to write benchmark results: {}, {}", e, filename);
+                eprintln!("Failed to write legacy benchmark results: {}, {}", e, legacy_filename);
             }
         }
+    }
+
+    fn output_monitoring_summary(&self, run_id: &str) {
+        // Get current run number
+        let run_number = get_next_run_number();
+        let logs_dir = format!("logs/run_{}", run_number);
+        
+        println!("\nSYSTEM MONITORING SUMMARY");
+        println!("=========================");
+        println!("Run #{}: {}", run_number, run_id);
+        println!("Logs directory: {}", logs_dir);
+        
+        // Parse and display GPU utilization
+        let gpu_log_path = format!("{}/gpu_util.log", logs_dir);
+        if let Ok(max_util) = self.parse_gpu_log(&gpu_log_path) {
+            println!("Max GPU Utilization: {:.1}%", max_util);
+        }
+        
+        // Parse and display disk I/O
+        let disk_log_path = format!("{}/disk_io.log", logs_dir);
+        if let Ok(peak_read) = self.parse_disk_log(&disk_log_path) {
+            println!("Peak Disk Read: {:.1} MB/s", peak_read);
+        }
+        
+        // Parse and display memory/CPU
+        let mem_cpu_log_path = format!("{}/mem_cpu.log", logs_dir);
+        if let Ok((max_ram, cpu_summary)) = self.parse_mem_cpu_log(&mem_cpu_log_path) {
+            println!("Max RAM Usage: {:.1} GB", max_ram);
+            println!("CPU Utilization - Avg: {:.1}% user, {:.1}% system, {:.1}% idle", 
+                cpu_summary.avg_user_percent, cpu_summary.avg_system_percent, cpu_summary.avg_idle_percent);
+        }
+        
+        // Parse and display context switches
+        let context_switch_log_path = format!("{}/context_switch.log", logs_dir);
+        if let Ok(total_switches) = self.parse_context_switch_log(&context_switch_log_path) {
+            if total_switches > 0 {
+                println!("Total Context Switches: {}", total_switches);
+            }
+        }
+    }
+
+    fn parse_gpu_log(&self, log_path: &str) -> Result<f64, String> {
+        use std::fs::File;
+        use std::io::BufReader;
+        
+        let file = File::open(log_path)
+            .map_err(|e| format!("Failed to open GPU log: {}", e))?;
+        
+        let reader = BufReader::new(file);
+        let mut max_utilization: f64 = 0.0;
+        
+        for line in reader.lines() {
+            let line = line.map_err(|e| format!("Failed to read GPU log line: {}", e))?;
+            
+            // Skip header lines and empty lines
+            if line.trim().is_empty() || line.contains("Date") || line.contains("Time") {
+                continue;
+            }
+            
+            // Parse nvidia-smi dmon output format
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 3 {
+                if let Ok(util) = parts[2].parse::<f64>() {
+                    max_utilization = max_utilization.max(util);
+                }
+            }
+        }
+        
+        Ok(max_utilization)
+    }
+
+    fn parse_disk_log(&self, log_path: &str) -> Result<f64, String> {
+        use std::fs::File;
+        use std::io::BufReader;
+        
+        let file = File::open(log_path)
+            .map_err(|e| format!("Failed to open disk log: {}", e))?;
+        
+        let reader = BufReader::new(file);
+        let mut peak_read_mbps: f64 = 0.0;
+        
+        for line in reader.lines() {
+            let line = line.map_err(|e| format!("Failed to read disk log line: {}", e))?;
+            
+            // Skip header lines and empty lines
+            if line.trim().is_empty() || line.contains("Device") || line.contains("rrqm") {
+                continue;
+            }
+            
+            // Parse iostat output format
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 4 {
+                // Look for read KB/s and convert to MB/s
+                if let Ok(read_kbps) = parts[2].parse::<f64>() {
+                    let read_mbps = read_kbps / 1024.0;
+                    peak_read_mbps = peak_read_mbps.max(read_mbps);
+                }
+            }
+        }
+        
+        Ok(peak_read_mbps)
+    }
+
+    fn parse_mem_cpu_log(&self, log_path: &str) -> Result<(f64, CpuUtilizationSummary), String> {
+        use std::fs::File;
+        use std::io::BufReader;
+        
+        let file = File::open(log_path)
+            .map_err(|e| format!("Failed to open memory/CPU log: {}", e))?;
+        
+        let reader = BufReader::new(file);
+        let mut max_ram_gb: f64 = 0.0;
+        let mut cpu_samples = Vec::new();
+        
+        for line in reader.lines() {
+            let line = line.map_err(|e| format!("Failed to read memory/CPU log line: {}", e))?;
+            
+            // Skip header lines and empty lines
+            if line.trim().is_empty() || line.contains("procs") || line.contains("r") {
+                continue;
+            }
+            
+            // Parse vmstat output format
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 16 {
+                // Parse memory usage (free memory in KB)
+                if let Ok(free_kb) = parts[3].parse::<f64>() {
+                    // Estimate total RAM usage (assuming 32GB total for now)
+                    let used_kb = 32.0 * 1024.0 * 1024.0 - free_kb;
+                    let used_gb = used_kb / (1024.0 * 1024.0);
+                    max_ram_gb = max_ram_gb.max(used_gb);
+                }
+                
+                // Parse CPU utilization
+                if let Ok(user_percent) = parts[12].parse::<f64>() {
+                    if let Ok(system_percent) = parts[13].parse::<f64>() {
+                        if let Ok(idle_percent) = parts[14].parse::<f64>() {
+                            cpu_samples.push((user_percent, system_percent, idle_percent));
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Calculate CPU utilization summary
+        let cpu_summary = if !cpu_samples.is_empty() {
+            let total_samples = cpu_samples.len() as f64;
+            let (avg_user, avg_system, avg_idle) = cpu_samples.iter()
+                .fold((0.0, 0.0, 0.0), |(u, s, i), &(user, system, idle)| {
+                    (u + user, s + system, i + idle)
+                });
+            
+            let max_user = cpu_samples.iter().map(|(u, _, _)| *u).fold(0.0, f64::max);
+            let max_system = cpu_samples.iter().map(|(_, s, _)| *s).fold(0.0, f64::max);
+            
+            CpuUtilizationSummary {
+                avg_user_percent: avg_user / total_samples,
+                avg_system_percent: avg_system / total_samples,
+                avg_idle_percent: avg_idle / total_samples,
+                max_user_percent: max_user,
+                max_system_percent: max_system,
+            }
+        } else {
+            CpuUtilizationSummary {
+                avg_user_percent: 0.0,
+                avg_system_percent: 0.0,
+                avg_idle_percent: 0.0,
+                max_user_percent: 0.0,
+                max_system_percent: 0.0,
+            }
+        };
+        
+        Ok((max_ram_gb, cpu_summary))
+    }
+
+    fn parse_context_switch_log(&self, log_path: &str) -> Result<u64, String> {
+        use std::fs::File;
+        use std::io::BufReader;
+        
+        let file = File::open(log_path);
+        if file.is_err() {
+            return Ok(0); // File doesn't exist, return 0
+        }
+        
+        let file = file.unwrap();
+        let reader = BufReader::new(file);
+        let mut total_switches = 0u64;
+        
+        for line in reader.lines() {
+            let line = line.map_err(|e| format!("Failed to read context switch log line: {}", e))?;
+            
+            // Skip header lines and empty lines
+            if line.trim().is_empty() || line.contains("Linux") || line.contains("UID") {
+                continue;
+            }
+            
+            // Parse pidstat output format
+            let parts: Vec<&str> = line.split_whitespace().collect();
+            if parts.len() >= 4 {
+                if let Ok(switches) = parts[3].parse::<u64>() {
+                    total_switches += switches;
+                }
+            }
+        }
+        
+        Ok(total_switches)
     }
 }
 
@@ -175,6 +423,34 @@ static BENCHMARK_TRACKER: Lazy<Mutex<BenchmarkTracker>> = Lazy::new(|| Mutex::ne
 pub fn start_benchmark(mode: &str, chunk_size: usize, parallel_files: bool) {
     if let Ok(mut tracker) = BENCHMARK_TRACKER.lock() {
         tracker.start_run(mode, chunk_size, parallel_files);
+    }
+}
+
+fn get_next_run_number() -> u64 {
+    // Try to get from perf_logger first
+    if let Some(run_number) = crate::perf_logger::get_current_run_number() {
+        return run_number;
+    }
+    
+    // Fallback: find the highest existing run number and add 1
+    if let Ok(entries) = std::fs::read_dir("benchmark_results") {
+        let mut max_run = 0u64;
+        for entry in entries {
+            if let Ok(entry) = entry {
+                if let Some(file_name) = entry.file_name().to_str() {
+                    if file_name.starts_with("run_") && file_name.ends_with("_benchmark_results.json") {
+                        if let Some(run_str) = file_name.strip_prefix("run_").and_then(|s| s.strip_suffix("_benchmark_results.json")) {
+                            if let Ok(run_num) = run_str.parse::<u64>() {
+                                max_run = max_run.max(run_num);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        max_run + 1
+    } else {
+        1 // First run
     }
 }
 

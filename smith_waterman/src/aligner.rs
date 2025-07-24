@@ -193,9 +193,9 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
     
     let total_files = files.len();
     let chunk_size_reads: usize = std::env::var("GPU_CHUNK_SIZE_READS")
-        .unwrap_or_else(|_| "1000".to_string())
+        .unwrap_or_else(|_| "100000".to_string())
         .parse()
-        .unwrap_or(1000);
+        .unwrap_or(100000);
     
     // Generate run ID for checkpointing
     let run_id = format!("wgs_{}", chrono::Utc::now().timestamp());

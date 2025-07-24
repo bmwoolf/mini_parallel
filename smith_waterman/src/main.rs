@@ -6,6 +6,7 @@ mod gpu;
 mod tools;
 mod aligner;
 mod system_info;
+mod perf_logger;
 
 #[derive(Parser)]
 #[command(name = "rustseq_mini")]
@@ -77,6 +78,14 @@ fn main() {
             std::process::exit(1);
         }
         
+        // Setup signal handlers for clean shutdown
+        perf_logger::setup_signal_handlers();
+        
+        // Start system monitors
+        if let Err(e) = perf_logger::start_system_monitors() {
+            eprintln!("Warning: Failed to start system monitors: {}", e);
+        }
+        
         let devices = gpu::get_gpu_devices();
         println!("GPU acceleration enabled");
         for device in &devices {
@@ -97,9 +106,17 @@ fn main() {
                 for (i, result) in results.iter().enumerate() {
                     println!("File {}: Score={}, Time={:.2}s", i+1, result.score, result.processing_time_ms/1000.0);
                 }
+                
+                // Stop system monitors
+                if let Err(e) = perf_logger::stop_system_monitors() {
+                    eprintln!("Warning: Failed to stop system monitors: {}", e);
+                }
             },
             Err(e) => {
                 eprintln!("Full WGS processing error: {}", e);
+                
+                // Stop system monitors on error
+                let _ = perf_logger::stop_system_monitors();
                 std::process::exit(1);
             }
         }
