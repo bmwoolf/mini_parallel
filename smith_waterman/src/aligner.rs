@@ -5,6 +5,15 @@ use crate::gpu::{GpuAlignmentResult, GpuDevice, GPU_WORK_GROUP_SIZE, GPU_MAX_WOR
 use ocl::{Buffer, Program, Kernel, MemFlags};
 use crate::tools::benchmark::{start_benchmark, update_benchmark_progress, finish_benchmark};
 
+// Centralized chunk size configuration - .env is the ONLY source of truth
+fn get_chunk_size_reads() -> Result<usize, String> {
+    let chunk_size_str = std::env::var("GPU_CHUNK_SIZE_READS")
+        .map_err(|_| "GPU_CHUNK_SIZE_READS not set in .env file".to_string())?;
+    
+    chunk_size_str.parse::<usize>()
+        .map_err(|e| format!("Invalid GPU_CHUNK_SIZE_READS value '{}': {}", chunk_size_str, e))
+}
+
 use std::fs::{File, OpenOptions};
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
@@ -135,8 +144,8 @@ where F: FnMut(&[String]) -> Result<(), String> {
                     }
                 }
                 
-                // Debug output every 100,000 lines
-                if line_count % 100000 == 0 {
+                // Debug output every 1,000,000 lines
+                if line_count % 1000000 == 0 {
                     println!("    Debug: Read {} lines, found {} reads, current chunk size: {}", line_count, total_reads, chunk.len());
                 }
             },
@@ -192,10 +201,16 @@ pub fn process_full_wgs_dataset(device: &GpuDevice) -> Result<Vec<GpuAlignmentRe
     }
     
     let total_files = files.len();
-    let chunk_size_reads: usize = std::env::var("GPU_CHUNK_SIZE_READS")
-        .unwrap_or_else(|_| "100000".to_string())
-        .parse()
-        .unwrap_or(100000);
+    let chunk_size_reads: usize = get_chunk_size_reads()?;
+    
+    // Display chunk size info (no confirmation required)
+    println!("==========================================");
+    println!("🚀 GPU PROCESSING STARTING 🚀");
+    println!("==========================================");
+    println!("GPU_CHUNK_SIZE_READS: {} (from .env)", chunk_size_reads);
+    println!("Kernel launches per file: ~{}", (51858562 + chunk_size_reads - 1) / chunk_size_reads);
+    println!("Total kernel launches: ~{}", ((51858562 + chunk_size_reads - 1) / chunk_size_reads) * total_files);
+    println!("==========================================");
     
     // Generate run ID for checkpointing
     let run_id = format!("wgs_{}", chrono::Utc::now().timestamp());
@@ -361,8 +376,9 @@ pub fn gpu_align_pair(file1: &str, file2: &str, device: &GpuDevice) -> Result<Gp
         // We'll just align the first chunk of each file for demonstration (or you can implement full pairwise chunked alignment)
         // For now, use the same chunked logic as before
         let mut total_score = 0;
-        process_fastq_file_in_chunks(file1, 100_000, |chunk1| {
-            process_fastq_file_in_chunks(file2, 100_000, |chunk2| {
+        let chunk_size = get_chunk_size_reads()?;
+        process_fastq_file_in_chunks(file1, chunk_size, |chunk1| {
+            process_fastq_file_in_chunks(file2, chunk_size, |chunk2| {
                 let seq1 = chunk1.concat();
                 let seq2 = chunk2.concat();
                 total_score += gpu_align(&seq1, &seq2, device)?;
@@ -508,8 +524,9 @@ pub fn gpu_align(seq1: &str, seq2: &str, device: &GpuDevice) -> Result<i32, Stri
 /// Count total bases in a FASTQ file (compressed or uncompressed), streaming and chunked
 pub fn count_bases_in_fastq(filepath: &str) -> Result<usize, String> {
     let mut total_bases = 0usize;
-    // Use a large chunk size for efficiency
-    process_fastq_file_in_chunks(filepath, 100_000, |chunk| {
+    // Use centralized chunk size for efficiency
+    let chunk_size = get_chunk_size_reads()?;
+    process_fastq_file_in_chunks(filepath, chunk_size, |chunk| {
         total_bases += chunk.iter().map(|seq| seq.len()).sum::<usize>();
         Ok(())
     })?;

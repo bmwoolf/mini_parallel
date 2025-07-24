@@ -1,0 +1,23 @@
+{
+  "timestamp": "2025-07-24T05:00:48.626490170Z",
+  "run_id": "run_1753331690",
+  "mode": "full_wgs",
+  "files_processed": 0,
+  "total_reads": 0,
+  "total_bases": 0,
+  "total_score": 0,
+  "total_time_seconds": 1558.192717813,
+  "throughput_reads_per_second": 0.0,
+  "throughput_bases_per_second": 0.0,
+  "chunk_size": 1000000,
+  "gpu_utilization_avg": 25.0,
+  "gpu_memory_used_mb": 400.0,
+  "cpu_cores_used": 24,
+  "parallel_files": true,
+  "system_info": {
+    "gpu_name": "NVIDIA GeForce RTX 4070 Ti",
+    "gpu_memory_gb": 11.994140625,
+    "cpu_cores": 24,
+    "total_ram_gb": 31.15496063232422
+  }
+}
